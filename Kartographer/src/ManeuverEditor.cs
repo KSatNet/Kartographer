@@ -451,7 +451,7 @@ namespace Kartographer
 					GUILayout.EndHorizontal ();
 
 					double ut = _maneuver.UT;
-					double utUpdate = _timeControl.TimeGUI (ut);
+					double utUpdate = _timeControl.TimeGUI (ut, FlightGlobals.ActiveVessel);
 					if (utUpdate != ut) {
 						_maneuver.OnGizmoUpdated (_maneuver.DeltaV, utUpdate);
 					}

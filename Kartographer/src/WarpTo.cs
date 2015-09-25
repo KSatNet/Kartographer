@@ -182,7 +182,7 @@ namespace Kartographer
 					!vessel.Landed) {
 					if (GUILayout.Button ("Transition", _buttonStyle)) {
 						// Warp to SOI transition.
-						_UT = vessel.orbit.EndUT - Util.ONE_KMIN;
+						_UT = vessel.orbit.EndUT - 10.0d;
 					}
 				}
 				if (vessel.patchedConicSolver.maneuverNodes.Count > 0) {
@@ -205,29 +205,32 @@ namespace Kartographer
 					}
 					GUILayout.EndHorizontal ();
 				}
+			}
 
-				GUILayout.BeginHorizontal ();
+			_UT = _timeControl.TimeGUI (_UT, vessel);
 
+			GUILayout.BeginHorizontal ();
+			if (GUILayout.Button ("=10min", _buttonStyle)) {
+				_UT = Planetarium.GetUniversalTime () + (10.0 * 60.0);
+			}
+			if (vessel != null) {
 				double period = vessel.orbit.period;
 				if (GUILayout.Button ("+1 Orbit", _buttonStyle) && period > 0) {
 					_UT = _UT + period;
 				}
-				if (GUILayout.Button ("-1 Orbit", _buttonStyle) && period > 0 ) {
+				if (GUILayout.Button ("-1 Orbit", _buttonStyle) && period > 0) {
 					_UT = _UT - period;
 				}
 				if (GUILayout.Button ("+10 Orbit", _buttonStyle) && period > 0) {
 					_UT = _UT + (10.0 * period);
 				}
-				if (GUILayout.Button ("-10 Orbit", _buttonStyle) && period > 0 ) {
+				if (GUILayout.Button ("-10 Orbit", _buttonStyle) && period > 0) {
 					_UT = _UT - (10.0 * period);
 				}
-				GUILayout.EndHorizontal ();
 			}
+			GUILayout.EndHorizontal ();
 
-			_UT = _timeControl.TimeGUI (_UT);
-			if (GUILayout.Button ("=10min", _buttonStyle)) {
-				_UT = Planetarium.GetUniversalTime () + (10.0 * 60.0);
-			}
+
 			GUILayout.Label ("", _labelStyle);
 			GUILayout.BeginHorizontal ();
 			if (GUILayout.Button ("Engage", _buttonStyle)) {
@@ -265,8 +268,6 @@ namespace Kartographer
 			_scrollStyle = KartographStyle.Instance.ScrollView;
 			_hasInitStyles = true;
 		}
-
-
 	}
 
 }
