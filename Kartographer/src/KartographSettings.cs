@@ -22,6 +22,7 @@ namespace Kartographer
 		private GUIStyle 	_centeredLabelStyle;
 		private GUIStyle	_textFieldStyle;
 		private GUIStyle	_textAreaStyle;
+		private GUIStyle	_toggleStyle;
 		private GUIStyle	_buttonStyle;
 		private bool 		_hasInitStyles 	= false;
 		private bool		_active = false;
@@ -99,12 +100,15 @@ namespace Kartographer
 		/// <param name="windowId">Window identifier.</param>
 		private void OnWindow(int windowId)
 		{
-			GUILayout.BeginVertical ();
+			GUILayout.BeginVertical (GUILayout.MinWidth(300.0f));
 			GUILayout.Label ("Plugin:" + typeof(KartographSettings).Assembly.GetName ().Name, _labelStyle);
 			GUILayout.Label ("Version:"+ Util.VERSION, _labelStyle);
 			GUILayout.Label ("Build: "+ typeof(KartographSettings).Assembly.GetName ().Version, _labelStyle);
-			_autoHide = GUILayout.Toggle (_autoHide, "Auto Hide Utilities Launcher");
-			_disableKraken = GUILayout.Toggle (_disableKraken, "Disable \"Unleash the Kraken\"");
+			_autoHide = GUILayout.Toggle (_autoHide, "Auto Hide Utilities Launcher",_toggleStyle);
+			_disableKraken = GUILayout.Toggle (_disableKraken, "Disable \"Unleash the Kraken\"",_toggleStyle);
+			if (GUILayout.Button ("Close", _buttonStyle)) {
+				ToggleWindow ();
+			}
 			GUILayout.EndVertical ();
 			GUI.DragWindow ();
 		}
@@ -120,6 +124,7 @@ namespace Kartographer
 			_textFieldStyle = KartographStyle.Instance.TextField;
 			_textAreaStyle = KartographStyle.Instance.TextArea;
 			_buttonStyle = KartographStyle.Instance.Button;
+			_toggleStyle = KartographStyle.Instance.Toggle;
 
 			_hasInitStyles = true;
 		}
