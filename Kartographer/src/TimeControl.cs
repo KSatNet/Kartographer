@@ -89,6 +89,7 @@ namespace Kartographer
 		/// <param name="vessel">Vessel.</param>
 		public double TimeGUI(double ut, Vessel vessel = null)
 		{
+			InitStyles ();
 			_UT = ut;
 			if (vessel == null) {
 				GUILayout.Label ("Time Controls", _labelStyle);

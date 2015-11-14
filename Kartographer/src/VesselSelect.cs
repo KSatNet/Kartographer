@@ -29,7 +29,6 @@ namespace Kartographer
 		private GUIStyle	_scrollStyle;
 		private GUIStyle	_toggleStyle;
 		private int 		_winID;
-		private bool 		_hasInitStyles 	= false;
 		private bool		_active = false;
 		private double 		_prevTime 		= 0.0d;
 		private bool 		_asteroids = false;
@@ -208,8 +207,7 @@ namespace Kartographer
 		/// </summary>
 		private void OnDraw()
 		{
-			if (!_hasInitStyles)
-				InitStyles ();
+			InitStyles ();
 			if (_active) {
 				_windowPos = GUILayout.Window (_winID, _windowPos, OnWindow, "Vessel Select", _windowStyle);
 				if (_windowPos.x == 0.0f && _windowPos.y == 0.0f) {
@@ -317,8 +315,6 @@ namespace Kartographer
 			_buttonStyle 	= KartographStyle.Instance.Button;
 			_scrollStyle 	= KartographStyle.Instance.ScrollView;
 			_toggleStyle 	= KartographStyle.Instance.Toggle;
-
-			_hasInitStyles = true;
 		}
 	}
 }

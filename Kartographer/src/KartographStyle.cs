@@ -5,6 +5,7 @@
 
 using System;
 using UnityEngine;
+using KSP.IO;
 
 namespace Kartographer
 {
@@ -62,14 +63,49 @@ namespace Kartographer
 		{
 			get { return _toggleStyle; }
 		}
-
+		private int _theme = 0;
+		public int Theme
+		{
+			get { return _theme; }
+		}
 		public void Start()
 		{
 			_instance = this;
-			InitStyle ();
 			DontDestroyOnLoad (this);
+			PluginConfiguration config = PluginConfiguration.CreateForType<KartographSettings> ();
+			config.load ();
+			_theme = config.GetValue<int> ("Theme", 0);
 		}
 
+		public void SetTheme(int theme)
+		{
+			_theme = theme;
+			_hasInitStyles = false;
+			InitStyle ();
+			SaveSettings ();
+		}
+
+		/// <summary>
+		/// Called when destroying this instance.
+		/// </summary>
+		public void OnDestroy()
+		{
+			if (_instance == this)
+				_instance = null;
+			SaveSettings ();
+		}
+		public void SaveSettings()
+		{
+			PluginConfiguration config = PluginConfiguration.CreateForType<KartographStyle> ();
+			config.load ();
+			config.SetValue ("Theme", _theme);
+			config.save ();
+		}
+
+		public void OnGUI()
+		{
+			InitStyle ();
+		}
 
 		/// <summary>
 		/// Takes a number and formats it for display. Uses standard metric prefixes or scientific notation.
@@ -148,20 +184,29 @@ namespace Kartographer
 				return;
 
 			// Copy the styles so we can change them.
-			_windowStyle = new GUIStyle (HighLogic.Skin.window);
-			_labelStyle = new GUIStyle (HighLogic.Skin.label);
+			GUISkin skin = HighLogic.Skin;
+			if (_theme != 0) {
+				GUISkin temp = GUI.skin;
+				GUI.skin = null;
+				skin = GUI.skin;
+				GUI.skin = temp;
+			}
+
+			_windowStyle = new GUIStyle (skin.window);
+			_labelStyle = new GUIStyle (skin.label);
 			_labelStyle.stretchWidth = true;
-			_centeredLabelStyle = new GUIStyle (HighLogic.Skin.label);
+			_labelStyle.alignment = TextAnchor.MiddleLeft;
+			_centeredLabelStyle = new GUIStyle (skin.label);
 			_centeredLabelStyle.stretchWidth = true;
 			_centeredLabelStyle.alignment = TextAnchor.MiddleCenter;
-			_rightLabelStyle = new GUIStyle (HighLogic.Skin.label);
+			_rightLabelStyle = new GUIStyle (skin.label);
 			_rightLabelStyle.stretchWidth = true;
 			_rightLabelStyle.alignment = TextAnchor.MiddleRight;
-			_buttonStyle = new GUIStyle (HighLogic.Skin.button);
-			_scrollStyle = new GUIStyle (HighLogic.Skin.scrollView);
-			_textFieldStyle = new GUIStyle (HighLogic.Skin.textField);
-			_textAreaStyle = new GUIStyle (HighLogic.Skin.textArea);
-			_toggleStyle = new GUIStyle (HighLogic.Skin.toggle);
+			_buttonStyle = new GUIStyle (skin.button);
+			_scrollStyle = new GUIStyle (skin.scrollView);
+			_textFieldStyle = new GUIStyle (skin.textField);
+			_textAreaStyle = new GUIStyle (skin.textArea);
+			_toggleStyle = new GUIStyle (skin.toggle);
 			_hasInitStyles = true;
 		}
 	}

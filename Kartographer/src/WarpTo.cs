@@ -29,7 +29,6 @@ namespace Kartographer
 		private GUIStyle 	_rightLabelStyle;
 		private GUIStyle	_buttonStyle;
 		private GUIStyle	_scrollStyle;
-		private bool 		_hasInitStyles 	= false;
 		private int 		_winID;
 		private double 		_UT;
 		private double 		_WarpEndUT = 0.0d;
@@ -114,8 +113,7 @@ namespace Kartographer
 		/// </summary>
 		private void OnDraw()
 		{
-			if (!_hasInitStyles)
-				InitStyles ();
+			InitStyles ();
 			if (_refreshHeight) {
 				_refreshHeight = false;
 				_windowPos.height = 0.0f;
@@ -259,14 +257,15 @@ namespace Kartographer
 		private void InitStyles()
 		{
 			_windowStyle = KartographStyle.Instance.Window;
+			if (_totalLabelStyle == null || _labelStyle != KartographStyle.Instance.Label) {
+				_totalLabelStyle = new GUIStyle (KartographStyle.Instance.RightLabel);
+				_totalLabelStyle.fontStyle = FontStyle.BoldAndItalic;
+			}
 			_labelStyle = KartographStyle.Instance.Label;
-			_totalLabelStyle = new GUIStyle (KartographStyle.Instance.RightLabel);
-			_totalLabelStyle.fontStyle = FontStyle.BoldAndItalic;
 			_centeredLabelStyle = KartographStyle.Instance.CenteredLabel;
 			_rightLabelStyle = KartographStyle.Instance.RightLabel;
 			_buttonStyle = KartographStyle.Instance.Button;
 			_scrollStyle = KartographStyle.Instance.ScrollView;
-			_hasInitStyles = true;
 		}
 	}
 

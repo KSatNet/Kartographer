@@ -64,7 +64,6 @@ namespace Kartographer
 		private GUIStyle	_buttonStyle;
 		private GUIStyle	_scrollStyle;
 		private GUIStyle	_toggleStyle;
-		private bool 		_hasInitStyles 	= false;
 		private bool		_maneuverShow = false;
 		private ManeuverNode _maneuver = null;
 		private Vessel		_mvessel = null;
@@ -148,8 +147,7 @@ namespace Kartographer
 		/// </summary>
 		public void OnDraw()
 		{
-			if (!_hasInitStyles)
-				InitStyles ();
+			InitStyles ();
 			if (_maneuverShow && IsUsable()) {
 				_windowPos = GUILayout.Window (_winID, _windowPos, OnWindow, "Maneuver Editor", _windowStyle);
 				if (_windowPos.x == 0.0f && _windowPos.y == 0.0f) {
@@ -497,8 +495,6 @@ namespace Kartographer
 			_buttonStyle = KartographStyle.Instance.Button;
 			_scrollStyle = KartographStyle.Instance.ScrollView;
 			_toggleStyle = KartographStyle.Instance.Toggle;
-
-			_hasInitStyles = true;
 		}
 
 	}

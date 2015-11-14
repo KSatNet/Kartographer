@@ -27,11 +27,10 @@ namespace Kartographer
 		private GUIStyle	_scrollStyle;
 		private GUIStyle	_toggleStyle;
 		private int 		_winID;
-		private bool 		_hasInitStyles 	= false;
 		private bool		_active = false;
 		private bool 		_bodyList = false;
 		private bool 		_refreshHeight = false;
-		private bool _targetMode = false;
+		private bool 		_targetMode = false;
 		private int 		_maneuverCnt = 0;
 		private Dictionary<CelestialBody,bool> _expanded = new Dictionary<CelestialBody,bool>();
 		private List<CelestialBody> _bodies = new List<CelestialBody>();
@@ -96,8 +95,7 @@ namespace Kartographer
 		/// </summary>
 		private void OnDraw()
 		{
-			if (!_hasInitStyles)
-				InitStyles ();
+			InitStyles ();
 			if (_active && IsUsable()) {
 				_windowPos = GUILayout.Window (_winID, _windowPos, OnWindow, "Focus Select", _windowStyle);
 				if (_windowPos.x == 0.0f && _windowPos.y == 0.0f) {
@@ -241,8 +239,6 @@ namespace Kartographer
 			_buttonStyle = KartographStyle.Instance.Button;
 			_scrollStyle = KartographStyle.Instance.ScrollView;
 			_toggleStyle = KartographStyle.Instance.Toggle;
-
-			_hasInitStyles = true;
 		}
 	}
 }

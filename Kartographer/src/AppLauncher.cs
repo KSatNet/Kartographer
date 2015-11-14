@@ -6,9 +6,13 @@
 using System;
 using UnityEngine;
 
+
+
 namespace Kartographer
 {
-	[KSPAddonImproved(KSPAddonImproved.Startup.Flight | KSPAddonImproved.Startup.EditorAny | KSPAddonImproved.Startup.TrackingStation, false)]
+	public delegate void ButtonClickHandler();
+
+	[KSPAddonImproved(KSPAddonImproved.Startup.Flight | KSPAddonImproved.Startup.TrackingStation, false)]
 	public class AppLauncher: MonoBehaviour
 	{
 
@@ -25,11 +29,11 @@ namespace Kartographer
 		private GUIStyle 	_labelStyle;
 		private GUIStyle 	_centeredLabelStyle;
 		private GUIStyle	_buttonStyle;
-		private bool 		_hasInitStyles 	= false;
 		private int 		_winID;
 		private float 		_autoHideTime = 0.0f;
 		public ApplicationLauncherButton _toolbarButton;
-
+		private IButton _altToolbarButton = null;
+		private PopupMenuDrawable _popMenu = null;
 		/// <summary>
 		/// Start this instance.
 		/// </summary>
@@ -79,17 +83,34 @@ namespace Kartographer
 		/// </summary>
 		public void OnAppLaunchReady()
 		{
-			_toolbarButton = ApplicationLauncher.Instance.AddModApplication (
+			if (ToolbarManager.ToolbarAvailable) {
+				_altToolbarButton = ToolbarManager.Instance.add ("Kartographer", "AppLaunch");
+				_altToolbarButton.TexturePath = "Kartographer/Textures/sat_map_small";
+				_altToolbarButton.Visible = true;
+				_altToolbarButton.OnClick += (ClickEvent e) => {
+					if (_altToolbarButton.Drawable == null) {
+						_popMenu = new PopupMenuDrawable();
+						CreateLaunchers();
+						_altToolbarButton.Drawable = _popMenu;
+					} else {
+						_popMenu.Destroy();
+						_popMenu = null;
+						_altToolbarButton.Drawable = null;
+					}
+				};
+			} else {
+				_toolbarButton = ApplicationLauncher.Instance.AddModApplication (
 					ToggleWindow,
 					ToggleWindow,
 					noOp,
 					noOp,
 					noOp,
 					noOp,
-					ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW | 
+					ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW |
 					ApplicationLauncher.AppScenes.TRACKSTATION,
 					(Texture)GameDatabase.Instance.GetTexture ("Kartographer/Textures/sat_map", false)
 				);
+			}
 		}
 
 		/// <summary>
@@ -97,7 +118,13 @@ namespace Kartographer
 		/// </summary>
 		public void DestroyButtons()
 		{
-			ApplicationLauncher.Instance.RemoveModApplication(_toolbarButton);
+			if (_toolbarButton != null) {
+				ApplicationLauncher.Instance.RemoveModApplication (_toolbarButton);
+			}
+			if (_altToolbarButton != null) {
+				_altToolbarButton.Destroy ();
+				_altToolbarButton = null;
+			}
 		}
 
 		/// <summary>
@@ -177,16 +204,17 @@ namespace Kartographer
 		/// </summary>
 		public void OnDraw()
 		{
-			if (!_hasInitStyles)
-				InitStyles ();
+			InitStyles ();
 			if (_active) {
 				_windowPos = GUILayout.Window (_winID, _windowPos, OnWindow, "Kartograher", _windowStyle);
 				if ((_windowPos.x == 0.0f && _windowPos.y == 0.0f) || _windowPos.yMax > Screen.height) {
-					Vector3 toolPos = Camera.current.WorldToScreenPoint (_toolbarButton.GetAnchor ());
-					_windowPos.x = toolPos.x - _windowPos.width*0.5f;
-					_windowPos.y = (Screen.height - toolPos.y);
-					if (!ApplicationLauncher.Instance.IsPositionedAtTop) {
-						_windowPos.y -= _windowPos.height;
+					if (_toolbarButton != null) {
+						Vector3 toolPos = Camera.current.WorldToScreenPoint (_toolbarButton.GetAnchor ());
+						_windowPos.x = toolPos.x - _windowPos.width * 0.5f;
+						_windowPos.y = (Screen.height - toolPos.y);
+						if (!ApplicationLauncher.Instance.IsPositionedAtTop) {
+							_windowPos.y -= _windowPos.height;
+						}
 					}
 				}
 				if (_windowPos.xMax + 5.0f > Screen.width) {
@@ -200,42 +228,56 @@ namespace Kartographer
 			}
 		}
 
+
+		private void CreateLauncherButton (string text, ButtonClickHandler handler)
+		{
+			if (_popMenu == null) {
+				if (GUILayout.Button (text, _buttonStyle)) {
+					handler ();
+					_autoHideTime = Time.time + AUTO_HIDE_TIME;
+				}
+			} else {
+				IButton option = _popMenu.AddOption (text);
+				option.Text = text;
+				option.OnClick += (ClickEvent e) => { handler(); };
+			}
+		}
+		private void CreateLaunchers()
+		{
+			if (KartographSettings.Instance != null) {
+				CreateLauncherButton ("Settings", () => {
+					KartographSettings.Instance.ToggleWindow ();
+				});
+			}
+			if (WarpTo.Instance != null) {
+				CreateLauncherButton ("Warp To", () => {
+					WarpTo.Instance.ToggleWindow ();
+				});
+			}
+			if (FocusSelect.Instance != null && FocusSelect.Instance.IsUsable()) {
+				CreateLauncherButton ("Focus Select", () => {
+					FocusSelect.Instance.ToggleWindow ();
+				});
+			}
+			if (VesselSelect.Instance != null && VesselSelect.Instance.IsUsable()) {
+				CreateLauncherButton ("Vessel Select", () => {
+					VesselSelect.Instance.ToggleWindow ();
+				});
+			}
+			if (ManeuverEditor.Instance != null && ManeuverEditor.Instance.IsUsable()	) {
+				CreateLauncherButton ("Maneuver Editor", () => {
+					ManeuverEditor.Instance.ToggleWindow ();
+				});
+			}
+		}
 		/// <summary>
 		/// Draws the window.
 		/// </summary>
 		/// <param name="windowId">Window identifier.</param>
 		private void OnWindow(int windowId)
 		{
-			int buttons = 0;
 			GUILayout.BeginVertical (GUILayout.Width(150.0f));
-			if (KartographSettings.Instance != null && GUILayout.Button ("Settings",_buttonStyle)) {
-				KartographSettings.Instance.ToggleWindow ();
-				_autoHideTime = Time.time + AUTO_HIDE_TIME;
-			}
-	
-			if (WarpTo.Instance != null && GUILayout.Button ("Warp To",_buttonStyle)) {
-				WarpTo.Instance.ToggleWindow ();
-				_autoHideTime = Time.time + AUTO_HIDE_TIME;
-			}
-			if (FocusSelect.Instance != null && FocusSelect.Instance.IsUsable()) {
-				if (GUILayout.Button ("Focus Select", _buttonStyle)) {
-					FocusSelect.Instance.ToggleWindow ();
-					_autoHideTime = Time.time + AUTO_HIDE_TIME;
-				}
-			}
-			if (VesselSelect.Instance != null && VesselSelect.Instance.IsUsable()) {
-				if (GUILayout.Button ("Vessel Select", _buttonStyle)) {
-					VesselSelect.Instance.ToggleWindow ();
-					_autoHideTime = Time.time + AUTO_HIDE_TIME;
-				}
-			}
-			if (ManeuverEditor.Instance != null && ManeuverEditor.Instance.IsUsable()	) {
-				buttons++;
-				if (GUILayout.Button ("Maneuver Editor",_buttonStyle)) {
-					ManeuverEditor.Instance.ToggleWindow ();
-					_autoHideTime = Time.time + AUTO_HIDE_TIME;
-				}
-			}
+			CreateLaunchers ();
 			GUILayout.EndVertical ();
 
 		}
@@ -249,7 +291,6 @@ namespace Kartographer
 			_labelStyle = KartographStyle.Instance.Label;
 			_centeredLabelStyle = KartographStyle.Instance.CenteredLabel;
 			_buttonStyle = KartographStyle.Instance.Button;
-			_hasInitStyles = true;
 		}
 
 	}

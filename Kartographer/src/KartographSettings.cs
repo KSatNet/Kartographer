@@ -106,6 +106,13 @@ namespace Kartographer
 			GUILayout.Label ("Build: "+ typeof(KartographSettings).Assembly.GetName ().Version, _labelStyle);
 			_autoHide = GUILayout.Toggle (_autoHide, "Auto Hide Utilities Launcher",_toggleStyle);
 			_disableKraken = GUILayout.Toggle (_disableKraken, "Disable \"Unleash the Kraken\"",_toggleStyle);
+			int themeSelection = GUILayout.SelectionGrid (KartographStyle.Instance.Theme, 
+				new string[]{ "KSP", "Unity" }, 3, _buttonStyle,
+				GUILayout.MinWidth (300.0f));
+			if (themeSelection != KartographStyle.Instance.Theme) {
+				KartographStyle.Instance.SetTheme (themeSelection);
+				_hasInitStyles = false;
+			}
 			if (GUILayout.Button ("Close", _buttonStyle)) {
 				ToggleWindow ();
 			}
